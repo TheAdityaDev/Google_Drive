@@ -5,52 +5,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const route = express.Router();
 
-route.get("/test", (req, res) => {
-  res.send("Hello");
-});
+
 
 route.get("/register", (req, res) => {
   res.render("register");
 });
 
-// route.post(
-//   "/register",
-//   [
-//     body("username")
-//       .isLength({ min: 3 })
-//       .withMessage("Username must be at least 3 characters"),
-//     body("email").isEmail().withMessage("Invalid email"),
-//     body("password")
-//       .isLength({ min: 8 })
-//       .withMessage("Password must be at least 8 characters"),
-//   ],
-//   async (req, res) => {
-//     const error = validationResult(req);
-
-//     if (!error.isEmpty()) {
-//       return res.status(400).json({ error: error.array() });
-//     }
-
-//     try {
-//       const { username, email, password } = req.body;
-//       const hashPassword = await bcrypt.hash(password, 10);
-
-//       const user = await UserModel.create({
-//         username: username,
-//         email: email,
-//         password: hashPassword, // ✅ Corrected this line
-//       });
-//        const userWithoutPassword = user.toObject();
-//       delete userWithoutPassword.password;
-
-//       console.log("User registered:", user);
-//       return res.status(201).json({ message: "User registered successfully" });
-//     } catch (err) {
-//       console.error("Registration error:", err.message);
-//       return res.status(500).json({ error: "Internal Server Error" });
-//     }
-//   }
-// );
 
 route.post(
   "/register",
@@ -93,7 +53,8 @@ route.post(
       delete sanitizedUser.password;
 
       // Password will be removed automatically due to toJSON()
-      return res.status(201).json({
+      res.redirect('/home')
+       res.status(201).json({
         message: "User registered successfully",
         user: newUser,
       });
@@ -101,6 +62,7 @@ route.post(
       console.error("Error in registration:", err.message);
       return res.status(500).json({ error: "Server error" });
     }
+
   }
 );
 route.get("/login", (req, res) => {
@@ -122,39 +84,51 @@ route.post(
     }
 
     const { email, password } = req.body;
-    console.log("Incoming email:", email);
-    console.log("Incoming password:", password);
+  
 
     // SELECT the password explicitly
     const user = await UserModel.findOne({ email }).select("+password");
 
     if (!user) {
-      console.log("User not found");
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log("Stored hash:", user.password);
 
     if (!user.password) {
-      console.log("Password field is missing on the user document");
       return res.status(500).json({ error: "Password is missing" });
     }
 
     try {
       const isMatch = await bcrypt.compare(password, user.password);
-      console.log("Password match:", isMatch);
 
       if (!isMatch) {
         return res.status(400).json({ error: "Password does not match" });
       }
 
-      return res.status(200).json({ message: "Login successful", user });
+      const token = jwt.sign({
+        userId:user._id,
+        email:user.email,
+        password:user.password
+      },process.env.JWT_SECRET)
+
+       res.cookie('token',token,{
+        httpOnly:true
+      })
+    res.redirect('/home')
+
+       res.send('User Login')
     } catch (err) {
       console.error("Error comparing passwords:", err.message);
       return res.status(500).json({ error: "Internal server error" });
     }
   }
+
 );
+
+route.get('/logout',(req,res)=>{
+  res.clearCookie('token')
+  res.redirect('/user/login')
+})
 
 route.get("/data", async (req, res) => {
   const data = await UserModel.find();

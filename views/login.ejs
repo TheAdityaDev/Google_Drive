@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+<style>
+  body{
+    overflow: hidden;
+  }
+</style>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
  <link
@@ -12,7 +17,8 @@
     rel="stylesheet"
   />
 <body>
-   <div class="flex flex-col justify-center items-center h-[100vh] bg-black">
+   <div class="h-[100vh] bg-black flex justify-center items-center">
+    <div class="flex justify-center items-center  ">
     <form
     action="/user/login"
     method="post"
@@ -57,6 +63,7 @@
       </button>
     </form>
 </div>
+   </div>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 
 </body>

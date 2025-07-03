@@ -4,6 +4,8 @@ const dotenv = require('dotenv').config();
 const DBconnect = require('./config/db');
 const userRoutes = require('./routes/user.route')
 const limiter = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const homeRoutes = require('./routes/index.route');
 
 const loginLimiter = limiter({
     windowMs: 60 * 1000, // 1 minute
@@ -17,19 +19,21 @@ const loginLimiter = limiter({
 DBconnect()
 port = process.env.PORT || 3000
 
-app.set('view engine' , 'ejs')
-app.use(express.static('public'))
-app.use(express.json())
+app.set('view engine' , 'ejs');
+app.use(express.static('public'));
+app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({extended:true}));
 app.use(loginLimiter)
 app.use('/user',userRoutes)
-
+app.use('/',homeRoutes)
 
 
 
 app.get('/',(req,res)=>{
     res.render('index')
 })
+
 
 
 app.listen(port,()=>{ 
